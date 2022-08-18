@@ -23,45 +23,15 @@ elif option < 1:
     print("Adios..")
     exit()   
 
-#Check what choice was entered and act accordingly
+# Crawl through directories and output a list of [filename,path] & a list of batches [AVS1102060003H,AVS1102060008H...]
+sortedpaths,listofbatches = get_filelist()
 
+# Using the information acquired above, build a dictionary.
+# Input: a) [filename,filepaths] , b) [AVS1102060003H,AVS1102060008H...]
+# Output: 'batch': [filepath1,filepath2,filepath3...]
+batchdict = dictionary_builder(listofbatches,sortedpaths)
 
-cwd = os.getcwd()
-listofcsvs = []
-batchdict = {}
-for subdir, dirs, files in os.walk(cwd):
-    
-    for file in files:
-        filepath = subdir + os.sep + file
-        if file.endswith(".csv") and not file.endswith("Events.csv"):
-            if file.startswith("A") or file.startswith("G"):
-                if os.path.getsize(filepath) > 10000: # Magic number to filter out empty CSVs
-                    tempString = file.translate({ ord(c): None for c in "-" }) 
-                    listofcsvs.append([tempString, filepath])
-                    #print("file: " + file + " Filepath: " + filepath)
-
-print (listofcsvs)
-nodupes = []
-sortedpaths =[]
-for csv in listofcsvs:
-    if csv[0] not in nodupes:
-        nodupes.append(csv[0])
-        sortedpaths.append(csv) 
-
-# #get the batches
-listofbatches = []
-for csv in sortedpaths:
-    listofbatches.append(csv[0][0:14])
-
-#initialize keys in batch dictionary
-for batch in listofbatches:
-    batchdict[batch] = []
-
-# for batch in batchdict:
-    for csv in sortedpaths:
-        if batch in csv[0]:
-            batchdict[batch].append(csv[1])
-        
+print(batchdict)
 count = 0
 datadict = {}
 batch_samples = [] # Store samples P01,P02...PX

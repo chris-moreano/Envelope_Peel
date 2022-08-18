@@ -65,6 +65,55 @@ class PDF(FPDF):
         else:
             self.error("Unknown resource loading reason \"%s\"" % reason)
 
+#This method interates though the directories and returns a list of list containing 
+# returns (filename,filepath & list of batches(ie.. VS41424141414)
+def get_filelist():
+
+    cwd = os.getcwd()
+    listofcsvs = []
+    nodupes = []
+    sortedpaths =[]
+    listofbatches = []
+    for subdir, dirs, files in os.walk(cwd):
+        
+        for file in files:
+            filepath = subdir + os.sep + file
+            #get the csv except the ones that have "events" in them
+            if file.endswith(".csv") and not file.endswith("Events.csv"):
+                if file.startswith("A") or file.startswith("G"): # and if it starts with either A or G 
+                    if os.path.getsize(filepath) > 10000: # Magic number to filter out empty CSVs
+                        tempString = file.translate({ ord(c): None for c in "-" }) 
+                        listofcsvs.append([tempString, filepath])
+    
+    #Check for any duplicates
+    for csv in listofcsvs:
+        if csv[0] not in nodupes:
+            nodupes.append(csv[0])
+            sortedpaths.append(csv) 
+    
+    for csv in sortedpaths:
+        listofbatches.append(csv[0][0:14])
+
+    return sortedpaths,listofbatches
+
+def dictionary_builder(listofbatches,sortedpaths):
+   
+    batchdict = {}
+    #initialize keys in batch dictionary
+    for batch in listofbatches:
+        batchdict[batch] = []
+        #print(batchdict)
+
+    #insert filepaths into keys
+    # 'batch': [path1,path2,path3]
+    for batch in batchdict:
+        for csv in sortedpaths:
+            if batch in csv[0]:
+                batchdict[batch].append(csv[1])
+                #print("Inserting...")
+                #print(batchdict)
+    return batchdict
+    
 def createpdf(fivepeaks_average_list, max_load_list, figure_list, batchtitle, num_samples,samplelist,option):
     max_page_width = 190
 
